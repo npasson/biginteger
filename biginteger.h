@@ -26,20 +26,18 @@
 
 #include <cstdint>
 #include <string>
-#include <bitset>
 
 namespace npasson {
-	template <uint_fast64_t BIT_AMOUNT>
 	class BigInteger {
 	private:
-
 		typedef uint64_t element_t;
 		typedef uint_fast64_t block_count_t;
 		typedef uint_fast64_t bit_count_t;
 		typedef uint_fast8_t sub_access_t;
 
-		const block_count_t ELEMENT_COUNT = (( BIT_AMOUNT - 1 ) / 64 ) + 1;
-		uint64_t *const _raw_data = new element_t[ELEMENT_COUNT];
+		const bit_count_t _bit_amount;
+		const block_count_t ELEMENT_COUNT;
+		uint64_t *const _raw_data;
 
 		/**
 		 *  A bit class used to modify single bits.
@@ -58,6 +56,8 @@ namespace npasson {
 			element_t *const _orig_data_point;
 			element_t *_bit_data;
 
+			bool inaccessible_flag = false;
+
 			block_count_t get_block_of_bit(bit_count_t num) {
 				return ( _parent->ELEMENT_COUNT ) - ( num / 64 ) - 1;
 			}
@@ -71,23 +71,21 @@ namespace npasson {
 			~Bit() = default;
 
 			/**
-			 * Chooses a bit from the
-			 * @param bit
+			 * Chooses a bit from the right.
+			 * @param bit The bit to be chosen, from the right.
 			 * @return
 			 */
 			Bit &operator()(bit_count_t bit) {
-				//std::cout << "Bit(): Access called for bit " << bit << std::endl;
-				//std::cout << "This bit is in block " << get_block_of_bit(bit) << std::endl;
-				//this->_access_bit = static_cast<sub_access_t>(64-(bit%64));
-				//std::cout << "The sub access number is " << +_access_bit << std::endl;
-				//this->_bit_data = &(_parent->_raw_data[(_parent->ELEMENT_COUNT)-get_block_of_bit(bit)]);
-				//std::cout << "The raw data of the block is " << std::bitset<64>(+(*_bit_data)) << std::endl;
-				//return *this;
-
-				this->_access_block = get_block_of_bit(bit);
-				this->_bit_data = _orig_data_point + _access_block;
-				this->_access_bit = static_cast<sub_access_t>(bit % 64);
-				return *this;
+				if (bit > _parent->_bit_amount) {
+					this->inaccessible_flag = true;
+					return *this;
+				} else {
+					this->inaccessible_flag = false;
+					this->_access_block = get_block_of_bit(bit);
+					this->_bit_data = _orig_data_point + _access_block;
+					this->_access_bit = static_cast<sub_access_t>(bit % 64);
+					return *this;
+				}
 			}
 
 			/**
@@ -100,6 +98,10 @@ namespace npasson {
 			 */
 			template <typename T>
 			Bit &operator=(T bit_val) {
+				if (inaccessible_flag) {
+					return *this;
+				}
+
 				if (bit_val == 0) {
 					/*
 					 * Step 1: Set the nth bit from the left to 1
@@ -122,11 +124,16 @@ namespace npasson {
 					 */
 					*( this->_bit_data ) |= (MOVE_LEFT(_access_bit));
 				}
+
 				return *this;
 			}
 
 			bool get() {
-				return (( *( this->_bit_data )) & (MOVE_LEFT(_access_bit))) != 0;
+				if (inaccessible_flag) {
+					return false;
+				} else {
+					return (( *( this->_bit_data )) & (MOVE_LEFT(_access_bit))) != 0;
+				}
 			}
 		};
 
@@ -134,7 +141,10 @@ namespace npasson {
 		Bit _m_bit = Bit(this);
 
 	public:
-		BigInteger() {
+		BigInteger(bit_count_t size) // NOLINT
+			: _bit_amount(size),
+			  ELEMENT_COUNT((( size - 1 ) / 64 ) + 1),
+			  _raw_data(new element_t[ELEMENT_COUNT]) {
 			for (block_count_t i = 0; i < ELEMENT_COUNT; ++i) {
 				this->_raw_data[i] = 0;
 			}
@@ -147,9 +157,9 @@ namespace npasson {
 		std::string str() {
 			std::string str;
 			bit_count_t i = ( ELEMENT_COUNT * 64 ) - 1;
-			for (; i >= 0; --i) {
+			while (true) {
 				str += std::to_string(_m_bit(i).get());
-				if (i == 0) break;
+				if (--i == 0) break;
 			}
 			return str;
 		}
@@ -158,6 +168,7 @@ namespace npasson {
 			_m_bit(bit) = 1;
 			std::cout << this->str() << std::endl;
 		}
+
 	};
 }
 
