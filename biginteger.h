@@ -22,7 +22,7 @@
 #ifndef NPASSON_BIGINTEGER
 #define NPASSON_BIGINTEGER
 
-#define MOVE_LEFT(a) (static_cast<element_t>(1) << a)
+#define MOVE_LEFT(a) (static_cast<element_t>(1) << (a))
 
 #include <cstdint>
 #include <string>
@@ -135,7 +135,7 @@ namespace npasson {
 
 	public:
 		BigInteger() {
-			for (int i = 0; i < ELEMENT_COUNT; ++i) {
+			for (block_count_t i = 0; i < ELEMENT_COUNT; ++i) {
 				this->_raw_data[i] = 0;
 			}
 		};
