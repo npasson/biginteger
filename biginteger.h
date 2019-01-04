@@ -1,6 +1,6 @@
 /*==================================================================================*\
  *
- *   BigInteger Type
+ *   _old_BigInteger Type
  *   Copyright (C) 2018  Nicholas Passon
  *   Documentation: http://www.npasson.com/
  *
@@ -27,10 +27,11 @@
 #include <cstdint>
 #include <string>
 #include <bitset>
+#include <iostream>
 
 namespace npasson {
 	template <uint_fast64_t BIT_AMOUNT>
-	class BigInteger {
+	class _old_BigInteger {
 	private:
 
 		typedef uint64_t element_t;
@@ -52,7 +53,7 @@ namespace npasson {
 		 */
 		class Bit {
 		private:
-			BigInteger *_parent;
+			_old_BigInteger *_parent;
 			sub_access_t _access_bit = 0;
 			block_count_t _access_block = 0;
 			element_t *const _orig_data_point;
@@ -63,7 +64,7 @@ namespace npasson {
 			}
 
 		public:
-			explicit Bit(BigInteger *parent) :
+			explicit Bit(_old_BigInteger *parent) :
 				_parent(parent),
 				_orig_data_point(parent->_raw_data),
 				_bit_data(_orig_data_point) {}
@@ -76,14 +77,6 @@ namespace npasson {
 			 * @return
 			 */
 			Bit &operator()(bit_count_t bit) {
-				//std::cout << "Bit(): Access called for bit " << bit << std::endl;
-				//std::cout << "This bit is in block " << get_block_of_bit(bit) << std::endl;
-				//this->_access_bit = static_cast<sub_access_t>(64-(bit%64));
-				//std::cout << "The sub access number is " << +_access_bit << std::endl;
-				//this->_bit_data = &(_parent->_raw_data[(_parent->ELEMENT_COUNT)-get_block_of_bit(bit)]);
-				//std::cout << "The raw data of the block is " << std::bitset<64>(+(*_bit_data)) << std::endl;
-				//return *this;
-
 				this->_access_block = get_block_of_bit(bit);
 				this->_bit_data = _orig_data_point + _access_block;
 				this->_access_bit = static_cast<sub_access_t>(bit % 64);
@@ -134,13 +127,13 @@ namespace npasson {
 		Bit _m_bit = Bit(this);
 
 	public:
-		BigInteger() {
+		_old_BigInteger() {
 			for (block_count_t i = 0; i < ELEMENT_COUNT; ++i) {
 				this->_raw_data[i] = 0;
 			}
 		};
 
-		~BigInteger() {
+		~_old_BigInteger() {
 			delete[] _raw_data;
 		}
 
