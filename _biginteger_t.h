@@ -13,9 +13,9 @@
 #endif
 
 #ifdef __cpp_if_constexpr
-#define if_constexpr if constexpr
+#	define if_constexpr if constexpr
 #else
-#define if_constexpr if
+#	define if_constexpr if
 #endif
 
 #if defined(__GNUC__)
@@ -25,7 +25,7 @@
 #       pragma message ("__attribute__((unused)) is not defined, ignore possible 'unused' warnings from this library")
 #       define NPASSON_EXTERNAL_USAGE
 #   endif
-#elif defined(__clang__)
+#elif defined(__clang__) || defined(__has_attribute_unused)
 #   if __has_attribute(unused)
 #       define NPASSON_EXTERNAL_USAGE __attribute__((unused))
 #   else
@@ -36,7 +36,7 @@
 
 namespace npasson {
 	template <uint_fast64_t _T_bit_amount>
-	class BigInteger {
+	class NPASSON_EXTERNAL_USAGE BigInteger {
 	private:
 		typedef uint64_t element_t;
 		typedef uint_fast64_t block_count_t;
@@ -65,6 +65,12 @@ namespace npasson {
 		BigInteger& operator=(const BigInteger& rhs);
 
 		BigInteger& operator=(BigInteger&& rhs) noexcept;
+
+		/* ****** OTHER CONSTRUCTORS ****** */
+
+		template <typename T> BigInteger(T, typename std::enable_if<std::is_unsigned<T>::value>::type* = 0);
+
+		template <typename T> BigInteger(T, typename std::enable_if<std::is_signed<T>::value>::type* = 0);
 
 		/* ****** MOVEMENT BETWEEN DIFFERENT SIZES ****** */
 
@@ -135,6 +141,24 @@ namespace npasson {
 	    std::memmove(this->_raw_data, rhs._raw_data, static_cast<size_t>(sizeof(element_t) * this->_block_count));
         return *this;
 	}
+
+
+	/* ****** OTHER CONSTRUCTORS ****** */
+
+	template<uint_fast64_t _T_bit_amount>
+	template<typename T>
+	BigInteger<_T_bit_amount>::BigInteger(T, typename std::enable_if<std::is_unsigned<T>::value>::type*) {
+		std::cout << "unsigned" << std::endl;
+		// TODO
+	}
+
+	template<uint_fast64_t _T_bit_amount>
+	template<typename T>
+	BigInteger<_T_bit_amount>::BigInteger(T, typename std::enable_if<std::is_signed<T>::value>::type*) {
+		std::cout << "signed" << std::endl;
+		// TODO
+	}
+
 
 	/* ****** BIT SET AND GET ****** */
 
