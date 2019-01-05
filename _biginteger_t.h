@@ -132,7 +132,7 @@ namespace npasson {
 
 	template <uint_fast64_t _T_bit_amount>
 	BigInteger<_T_bit_amount>& BigInteger<_T_bit_amount>::operator=(BigInteger&& rhs) noexcept {
-	    std::memcpy(this->_raw_data, rhs._raw_data, static_cast<size_t>(sizeof(element_t) * this->_block_count));
+	    std::memmove(this->_raw_data, rhs._raw_data, static_cast<size_t>(sizeof(element_t) * this->_block_count));
         return *this;
 	}
 
@@ -232,7 +232,6 @@ namespace npasson {
 					break;
 			}
 		}
-        // TODO
 		return *this;
 	}
 
@@ -266,7 +265,6 @@ namespace npasson {
 					break;
 			}
 		}
-        // TODO
 		return *this;
 	}
 
@@ -276,7 +274,6 @@ namespace npasson {
 		BigInteger<_T_bit_amount> temp = *this;
 		return temp -= rhs;
 	}
-
 }
 
 #undef if_constexpr

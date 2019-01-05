@@ -4,15 +4,13 @@
 
 int main() {
 	npasson::BigInteger<120> a;
-	npasson::BigInteger<1200> b;
+	npasson::BigInteger<120> b;
 
 	b._set_bit(1,1);
 	b._set_bit(0,1);
 
 	a._set_bit(110, 1);
 	a._set_bit(0, 1);
-	a._set_bit(1000, 1);
-
 
 	std::cout << a.str() << std::endl;
 	std::cout << b.str() << std::endl;
