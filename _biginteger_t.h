@@ -6,7 +6,9 @@
 #define NPASSON_BIGINTEGER_TYPE
 
 #include <cstdint>
+#include <string>
 #include <cstring>
+#include <iostream>
 
 #ifdef __JETBRAINS_IDE__ // because CLion is stupid with highlighting, ignore this part
 #   define __has_attribute_unused true
@@ -97,7 +99,7 @@ namespace npasson {
 
 		/* ****** OUTPUT AND CASTS ******* */
 
-		std::string str();
+		char* str();
 	};
 
 	/* ****** THE BIG FIVE + DESTRUCTOR ****** */
@@ -203,12 +205,18 @@ namespace npasson {
 
 	template <uint_fast64_t _T_bit_amount>
 	NPASSON_EXTERNAL_USAGE
-	std::string BigInteger<_T_bit_amount>::str() {
+	char* BigInteger<_T_bit_amount>::str() {
 		std::string ret{};
-		for (bit_count_t i = _T_bit_amount; i > 0; --i) {
-			ret += std::to_string(static_cast<unsigned int>(+_get_bit(i - 1)));
+		bit_count_t i = _T_bit_amount;
+
+		char * const ret_c = new char[_T_bit_amount+1];
+		ret_c[_T_bit_amount] = '\0';
+
+		while (i --> 0) {
+			ret_c[_T_bit_amount-(i+1)] = static_cast<char>('0' + _get_bit(i));
 		}
-		return ret;
+
+		return ret_c;
 	}
 
 	template <uint_fast64_t _T_bit_amount>
