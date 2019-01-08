@@ -85,9 +85,11 @@ namespace npasson {
 
 		/* ****** OTHER CONSTRUCTORS ****** */
 
-		template <typename T> BigInteger(T, typename std::enable_if<std::is_unsigned<T>::value>::type* = 0);
+		template <typename T>
+		BigInteger(T, typename std::enable_if<std::is_unsigned<T>::value && std::__is_integer<T>::value>::type* = 0);
 
-		template <typename T> BigInteger(T, typename std::enable_if<std::is_signed<T>::value>::type* = 0);
+		template <typename T>
+		BigInteger(T, typename std::enable_if<std::is_signed<T>::value && std::__is_integer<T>::value>::type* = 0);
 
 		/* ****** MOVEMENT BETWEEN DIFFERENT SIZES ****** */
 
@@ -164,18 +166,27 @@ namespace npasson {
 
 	template<uint_fast64_t _T_bit_amount>
 	template<typename T>
-	BigInteger<_T_bit_amount>::BigInteger(T, typename std::enable_if<std::is_unsigned<T>::value>::type*) {
-		std::cout << "unsigned" << std::endl;
-		// TODO
+	BigInteger<_T_bit_amount>::BigInteger(
+			T val,
+			typename std::enable_if<std::is_unsigned<T>::value && std::__is_integer<T>::value>::type*
+	)
+	: BigInteger()
+	{
+		bit_count_t val_size = sizeof(T) * 8;
+		for(bit_count_t i = 0; i < val_size; ++i) {
+			int bit = (val &(((bit_count_t)1) << i)) != 0;
+			this->_set_bit(i, bit);
+		}
 	}
 
 	template<uint_fast64_t _T_bit_amount>
 	template<typename T>
-	BigInteger<_T_bit_amount>::BigInteger(T, typename std::enable_if<std::is_signed<T>::value>::type*) {
-		std::cout << "signed" << std::endl;
-		// TODO
-	}
-
+	BigInteger<_T_bit_amount>::BigInteger(
+			T val,
+			typename std::enable_if<std::is_signed<T>::value && std::__is_integer<T>::value>::type*
+	)
+	: BigInteger<_T_bit_amount>(static_cast<typename std::make_unsigned<T>::type>(val))
+	{}
 
 	/* ****** BIT SET AND GET ****** */
 
