@@ -101,9 +101,9 @@ namespace npasson {
 
 		/* ****** OTHER CONSTRUCTORS ****** */
 
-		NPASSON_BIGINTEGER_CTORDECL(std::is_unsigned<T>::value&& std::is_integral<T>::value);
+		NPASSON_BIGINTEGER_CTORDECL(std::is_unsigned<T>::value&& std::is_integral<T>::value); // NOLINT
 
-		NPASSON_BIGINTEGER_CTORDECL(std::is_signed<T>::value&& std::is_integral<T>::value);
+		NPASSON_BIGINTEGER_CTORDECL(std::is_signed<T>::value&& std::is_integral<T>::value); // NOLINT
 
 		/* ****** MOVEMENT BETWEEN DIFFERENT SIZES ****** */
 
