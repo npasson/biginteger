@@ -5,4 +5,4 @@ set(CMAKE_CXX_STANDARD 17)
 
 set (CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic")
 
-add_executable(BigInteger main.cpp _biginteger_t.h)
+add_executable(BigInteger main.cpp biginteger.h)

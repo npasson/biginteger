@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "_biginteger_t.h"
+#include "biginteger.h"
 
 int main() {
 	npasson::BigInteger<120> a;
