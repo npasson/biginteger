@@ -55,6 +55,18 @@
 
 #define NPASSON_BIGINTEGER_SIZE(a) template <uint_fast64_t a>
 
+#define NPASSON_BIGINTEGER_CTORDECL(...) \
+template <typename T> \
+BigInteger(T val, typename std::enable_if<__VA_ARGS__>::type* = 0)
+
+#define NPASSON_BIGINTEGER_CTORDEF(...) \
+template <typename T> \
+NPASSON_EXTERNAL_USAGE \
+BigInteger<_T_bit_amount>::BigInteger( \
+        T val, \
+        typename std::enable_if<__VA_ARGS__>::type* \
+)
+
 namespace npasson {
 	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
 	class NPASSON_EXTERNAL_USAGE BigInteger {
@@ -89,11 +101,9 @@ namespace npasson {
 
 		/* ****** OTHER CONSTRUCTORS ****** */
 
-		template <typename T>
-		BigInteger(T, typename std::enable_if<std::is_unsigned<T>::value && std::is_integral<T>::value>::type* = 0);
+		NPASSON_BIGINTEGER_CTORDECL(std::is_unsigned<T>::value&& std::is_integral<T>::value);
 
-		template <typename T>
-		BigInteger(T, typename std::enable_if<std::is_signed<T>::value && std::is_integral<T>::value>::type* = 0);
+		NPASSON_BIGINTEGER_CTORDECL(std::is_signed<T>::value&& std::is_integral<T>::value);
 
 		/* ****** MOVEMENT BETWEEN DIFFERENT SIZES ****** */
 
@@ -169,12 +179,7 @@ namespace npasson {
 	/* ****** OTHER CONSTRUCTORS ****** */
 
 	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
-	template <typename T>
-	NPASSON_EXTERNAL_USAGE
-	BigInteger<_T_bit_amount>::BigInteger(
-			T val,
-			typename std::enable_if<std::is_unsigned<T>::value && std::is_integral<T>::value>::type*
-	)
+	NPASSON_BIGINTEGER_CTORDEF(std::is_unsigned<T>::value&& std::is_integral<T>::value)
 			: BigInteger() {
 		bit_count_t      val_size = sizeof(T) * 8;
 		for (bit_count_t i        = 0; i < val_size; ++i) {
@@ -184,12 +189,7 @@ namespace npasson {
 	}
 
 	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
-	template <typename T>
-	NPASSON_EXTERNAL_USAGE
-	BigInteger<_T_bit_amount>::BigInteger(
-			T val,
-			typename std::enable_if<std::is_signed<T>::value && std::is_integral<T>::value>::type*
-	)
+	NPASSON_BIGINTEGER_CTORDEF(std::is_signed<T>::value&& std::is_integral<T>::value)
 			: BigInteger<_T_bit_amount>(static_cast<typename std::make_unsigned<T>::type>(val)) {}
 
 	/* ****** BIT SET AND GET ****** */
