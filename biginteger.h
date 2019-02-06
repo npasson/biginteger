@@ -1,6 +1,6 @@
 /*==================================================================================*\
  *
- *   BigInteger Type
+ *   BigInteger Type v0.0.1 DEVELOPMENT VERSION
  *   Copyright (C) 2018  Nicholas Passon
  *   Documentation: http://www.npasson.com/
  *
@@ -21,6 +21,11 @@
 
 #ifndef NPASSON_BIGINTEGER_TYPE
 #define NPASSON_BIGINTEGER_TYPE
+
+#pragma message(\
+"BIGINTEGER v0.0.1 - This is a version of the BigInteger library IN DEVELOPMENT. \
+Use with caution, and keep in mind this library is distributed WITHOUT ANY WARRANTY."\
+)
 
 #include <cstdint>
 #include <string>
@@ -127,6 +132,10 @@ namespace npasson {
 
 		template <uint_fast64_t _T_rhs_size>
 		BigInteger<_T_bit_amount> operator-(BigInteger<_T_rhs_size>& rhs);
+
+		BigInteger<_T_bit_amount>& operator++();
+
+		const BigInteger<_T_bit_amount> operator++(int);
 
 		/* ****** OUTPUT AND CASTS ******* */
 
@@ -335,6 +344,19 @@ namespace npasson {
 	BigInteger<_T_bit_amount> BigInteger<_T_bit_amount>::operator-(BigInteger<_T_rhs_size>& rhs) {
 		BigInteger<_T_bit_amount> temp = *this;
 		return temp -= rhs;
+	}
+
+	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
+	BigInteger<_T_bit_amount>& BigInteger<_T_bit_amount>::operator++() {
+		BigInteger<1> rhs(1u);
+		return ( *this += rhs );
+	}
+
+	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
+	const BigInteger<_T_bit_amount> BigInteger<_T_bit_amount>::operator++(int) {
+		BigInteger result(*this);
+		++( *this );
+		return result;
 	}
 }
 
