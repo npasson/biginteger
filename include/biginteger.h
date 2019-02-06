@@ -23,8 +23,9 @@
 #define NPASSON_BIGINTEGER_TYPE
 
 #pragma message(\
-"BIGINTEGER v0.0.1 - This is a version of the BigInteger library IN DEVELOPMENT. \
-Use with caution, and keep in mind this library is distributed WITHOUT ANY WARRANTY."\
+"\n    BIGINTEGER v0.0.1\n\
+         This is a version of the BigInteger library IN DEVELOPMENT.\n\
+         Use with caution, and keep in mind this library is distributed WITHOUT ANY WARRANTY."\
 )
 
 #include <cstdint>
@@ -43,6 +44,7 @@ Use with caution, and keep in mind this library is distributed WITHOUT ANY WARRA
 #endif
 
 #if defined(__GNUC__)
+#   define BUILTIN_CLZ
 #   if __has_attribute(unused) || defined(__has_attribute_unused)
 #       define NPASSON_EXTERNAL_USAGE __attribute__((unused))
 #   else
@@ -50,6 +52,12 @@ Use with caution, and keep in mind this library is distributed WITHOUT ANY WARRA
 #       define NPASSON_EXTERNAL_USAGE
 #   endif
 #elif defined(__clang__) || defined(__has_attribute_unused)
+#   ifndef __has_builtin
+#       define __has_builtin(x) 0
+#   endif
+#   if __has_builtin(__builtin_clz)
+#       define BUILTIN_CLZ
+#   endif
 #   if __has_attribute(unused)
 #       define NPASSON_EXTERNAL_USAGE __attribute__((unused))
 #   else
@@ -123,6 +131,11 @@ namespace npasson {
 
 		template <uint_fast64_t _T_rhs_size>
 		BigInteger<_T_bit_amount>& operator+=(BigInteger<_T_rhs_size>& rhs);
+
+		template <typename T>
+		typename std::enable_if<std::is_unsigned<T>::value,
+				BigInteger<_T_bit_amount>&>::type
+		operator+=(T rhs);
 
 		template <uint_fast64_t _T_rhs_size>
 		BigInteger<_T_bit_amount> operator+(BigInteger<_T_rhs_size>& rhs);
@@ -357,6 +370,16 @@ namespace npasson {
 		BigInteger result(*this);
 		++( *this );
 		return result;
+	}
+
+	template <uint_fast64_t _T_bit_amount>
+	template <typename T>
+	typename std::enable_if<std::is_unsigned<T>::value,
+			BigInteger<_T_bit_amount>&>::type
+	BigInteger<_T_bit_amount>::operator+=(T rhs) {
+		if (rhs == 0) return *this;
+		BigInteger<sizeof(T)> temp(rhs);
+		return ( ( *this ) += temp );
 	}
 }
 
