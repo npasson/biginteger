@@ -1,4 +1,3 @@
-
 ## BigInteger
 An arbitrary size integer class. Arbitrary size in this context means "as much as you can allocate at once".
 ### THIS IS A DEVELOPMENT VERSION. THERE IS NO GUARANTEE FOR FEATURES, AND SYNTAX MAY CHANGE ARBITRARILY.
@@ -30,6 +29,15 @@ Since this is a dev version, the code example does not portray the full capabili
 Big numbers. Who needs 64 bit integers when you can have 64,000,000 bit integers?
 
 ## Usage
+
+**1\.**
+ `cd` into your project folder, and run
+```
+git clone gitlab.tu-berlin.de/npasson/biginteger
+```
+This will download the code.
+
+**2\.**
 Add these two lines at the top of your program:
 ```
 #include "biginteger/include/biginteger.h"
