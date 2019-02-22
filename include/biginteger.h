@@ -19,6 +19,34 @@
  *
 \*==================================================================================*/
 
+/*
+ * Structure of this file:
+ *
+ * file
+ * ├─ class
+ * │  ├─ private typedefs
+ * │  ├─ private member variables
+ * │  ├─ private member functions
+ * │  ├─ public Big Five constructors
+ * │  ├─ public operator =
+ * │  ├─ public other constructors
+ * │  ├─ public member functions
+ * │  ├─ public operators
+ * │  │  ├─ operator +=
+ * │  │  ├─ operator +
+ * │  │  ├─ operator ++
+ * │  │  ├─ operator -=
+ * │  │  ├─ operator -
+ * │  │  ├─ operator --
+ * │  │  ├─ operator *=
+ * │  │  ├─ operator *
+ * │  │  ├─ operator /=
+ * │  │  ├─ operator /
+ * │  │  ├─ operator <<
+ * │  │  ├─ operator >>
+ *
+ */
+
 #ifndef NPASSON_BIGINTEGER_TYPE
 #define NPASSON_BIGINTEGER_TYPE
 
@@ -66,6 +94,8 @@
 #   endif
 #endif
 
+#define DEBUG
+
 #define NPASSON_BIGINTEGER_SIZE(a) template <uint_fast64_t a>
 
 #define NPASSON_BIGINTEGER_CTORDECL(...) \
@@ -89,14 +119,15 @@ namespace npasson {
 		typedef uint_fast64_t bit_count_t;
 		typedef uint_fast8_t  sub_access_t;
 
-		const block_count_t _block_count = ( _T_bit_amount / sizeof(element_t) * 8 ) + 1;
+		const block_count_t _block_count = ( _T_bit_amount / ( sizeof(element_t) * 8 ) ) + 1;
 		element_t* const _raw_data = new element_t[_block_count];
+
+		int _get_bit(bit_count_t bit) const;
+
+		bool _set_bit(bit_count_t bit, int val);
 
 	public:
 
-		int _get_bit(bit_count_t bit);
-
-		bool _set_bit(bit_count_t bit, int val);
 
 		/* ****** THE BIG FIVE + DESTRUCTOR ****** */
 
@@ -120,6 +151,18 @@ namespace npasson {
 
 		/* ****** MOVEMENT BETWEEN DIFFERENT SIZES ****** */
 
+		#ifdef DEBUG
+
+		void print_data() const {
+			std::cout
+					<< "Bit count:          " << _T_bit_amount << "\n"
+					<< "Block count:        " << _block_count << "\n"
+					<< "Data pointer value: " << _raw_data << "\n"
+					<< "Data:               " << this->str() << "\n";
+		}
+
+		#endif
+
 		template <uint_fast64_t _T_new_size>
 		NPASSON_EXTERNAL_USAGE BigInteger<_T_new_size> resize();
 
@@ -129,8 +172,12 @@ namespace npasson {
 
 		/* OPERATORS! */
 
+		/* ***************************************************************** *\
+		 *    Plus    ++++++++++++++++++++++++++++++++++++++++++++++++++++++ *
+		\* ***************************************************************** */
+
 		template <uint_fast64_t _T_rhs_size>
-		BigInteger<_T_bit_amount>& operator+=(BigInteger<_T_rhs_size>& rhs);
+		BigInteger<_T_bit_amount>& operator+=(const BigInteger<_T_rhs_size>&& rhs);
 
 		template <typename T>
 		typename std::enable_if<std::is_unsigned<T>::value,
@@ -138,21 +185,48 @@ namespace npasson {
 		operator+=(T rhs);
 
 		template <uint_fast64_t _T_rhs_size>
-		BigInteger<_T_bit_amount> operator+(BigInteger<_T_rhs_size>& rhs);
-
-		template <uint_fast64_t _T_rhs_size>
-		BigInteger<_T_bit_amount>& operator-=(BigInteger<_T_rhs_size>& rhs);
-
-		template <uint_fast64_t _T_rhs_size>
-		BigInteger<_T_bit_amount> operator-(BigInteger<_T_rhs_size>& rhs);
+		BigInteger<_T_bit_amount> operator+(const BigInteger<_T_rhs_size>& rhs) const;
 
 		BigInteger<_T_bit_amount>& operator++();
 
 		const BigInteger<_T_bit_amount> operator++(int);
 
+		/* ***************************************************************** *\
+		 *    Minus    ----------------------------------------------------- *
+		\* ***************************************************************** */
+
+		template <uint_fast64_t _T_rhs_size>
+		BigInteger<_T_bit_amount>& operator-=(const BigInteger<_T_rhs_size>& rhs);
+
+		template <uint_fast64_t _T_rhs_size>
+		BigInteger<_T_bit_amount> operator-(const BigInteger<_T_rhs_size>& rhs) const;
+
+		/* ***************************************************************** *\
+		 *    Multiplication    ******************************************** *
+		\* ***************************************************************** */
+
+		template <uint_fast64_t _T_rhs_size>
+		BigInteger<_T_bit_amount>& operator*=(BigInteger<_T_rhs_size>& rhs);
+
+		/* ***************************************************************** *\
+		 *    Division    ////////////////////////////////////////////////// *
+		\* ***************************************************************** */
+
+		/* ***************************************************************** *\
+		 *    Left Stream    <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< *
+		\* ***************************************************************** */
+
+		BigInteger<_T_bit_amount>& operator<<=(uint_fast64_t);
+
+		BigInteger<_T_bit_amount> operator<<(uint_fast64_t) const;
+
+		/* ***************************************************************** *\
+		 *    Right Stream    >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> *
+		\* ***************************************************************** */
+
 		/* ****** OUTPUT AND CASTS ******* */
 
-		char* str();
+		std::string str() const;
 	};
 
 	/* ****** THE BIG FIVE + DESTRUCTOR ****** */
@@ -217,7 +291,7 @@ namespace npasson {
 	/* ****** BIT SET AND GET ****** */
 
 	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
-	int BigInteger<_T_bit_amount>::_get_bit(BigInteger::bit_count_t bit) {
+	int BigInteger<_T_bit_amount>::_get_bit(BigInteger::bit_count_t bit) const {
 		if (bit >= _T_bit_amount) {
 			return 0;
 		} else {
@@ -257,8 +331,7 @@ namespace npasson {
 
 	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
 	NPASSON_EXTERNAL_USAGE
-	char* BigInteger<_T_bit_amount>::str() {
-		std::string ret {};
+	std::string BigInteger<_T_bit_amount>::str() const {
 		bit_count_t i = _T_bit_amount;
 
 		char* const ret_c = new char[_T_bit_amount + 1];
@@ -268,7 +341,7 @@ namespace npasson {
 			ret_c[_T_bit_amount - ( i + 1 )] = static_cast<char>('0' + _get_bit(i));
 		}
 
-		return ret_c;
+		return std::string(ret_c);
 	}
 
 	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
@@ -290,9 +363,13 @@ namespace npasson {
 
 	/* ****** OPERATORS ****** */
 
+	/* ***************************************************************** *\
+	 *    Plus    ++++++++++++++++++++++++++++++++++++++++++++++++++++++ *
+	\* ***************************************************************** */
+
 	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
 	template <uint_fast64_t _T_rhs_size>
-	BigInteger<_T_bit_amount>& BigInteger<_T_bit_amount>::operator+=(BigInteger<_T_rhs_size>& rhs) {
+	BigInteger<_T_bit_amount>& BigInteger<_T_bit_amount>::operator+=(const BigInteger<_T_rhs_size>&& rhs) {
 		int              carry = 0;
 		for (bit_count_t i     = 0; i < _T_bit_amount; ++i) {
 			static int amount = 0;
@@ -319,16 +396,43 @@ namespace npasson {
 		return *this;
 	}
 
-	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
-	template <uint_fast64_t _T_rhs_size>
-	BigInteger<_T_bit_amount> BigInteger<_T_bit_amount>::operator+(BigInteger<_T_rhs_size>& rhs) {
-		BigInteger<_T_bit_amount> temp = *this;
-		return temp += rhs;
+	template <uint_fast64_t _T_bit_amount>
+	template <typename T>
+	typename std::enable_if<std::is_unsigned<T>::value,
+			BigInteger<_T_bit_amount>&>::type
+	BigInteger<_T_bit_amount>::operator+=(T rhs) {
+		if (rhs == 0) return *this;
+		BigInteger<sizeof(T)> temp(rhs);
+		return ( ( *this ) += temp );
 	}
 
 	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
 	template <uint_fast64_t _T_rhs_size>
-	BigInteger<_T_bit_amount>& BigInteger<_T_bit_amount>::operator-=(BigInteger<_T_rhs_size>& rhs) {
+	BigInteger<_T_bit_amount> BigInteger<_T_bit_amount>::operator+(const BigInteger<_T_rhs_size>& rhs) const {
+		BigInteger<_T_bit_amount> temp = *this;
+		return ( temp += rhs );
+	}
+
+	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
+	BigInteger<_T_bit_amount>& BigInteger<_T_bit_amount>::operator++() {
+		BigInteger<1> rhs(1u);
+		return ( *this += rhs );
+	}
+
+	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
+	const BigInteger<_T_bit_amount> BigInteger<_T_bit_amount>::operator++(int) {
+		BigInteger result(*this);
+		++( *this );
+		return result;
+	}
+
+	/* ***************************************************************** *\
+	 *    Minus    ----------------------------------------------------- *
+	\* ***************************************************************** */
+
+	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
+	template <uint_fast64_t _T_rhs_size>
+	BigInteger<_T_bit_amount>& BigInteger<_T_bit_amount>::operator-=(const BigInteger<_T_rhs_size>& rhs) {
 		int              carry = 0;
 		for (bit_count_t i     = 0; i < _T_bit_amount; ++i) {
 			static int amount = 0;
@@ -354,33 +458,59 @@ namespace npasson {
 
 	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
 	template <uint_fast64_t _T_rhs_size>
-	BigInteger<_T_bit_amount> BigInteger<_T_bit_amount>::operator-(BigInteger<_T_rhs_size>& rhs) {
+	BigInteger<_T_bit_amount> BigInteger<_T_bit_amount>::operator-(const BigInteger<_T_rhs_size>& rhs) const {
 		BigInteger<_T_bit_amount> temp = *this;
-		return temp -= rhs;
+		return ( temp -= rhs );
 	}
 
-	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
-	BigInteger<_T_bit_amount>& BigInteger<_T_bit_amount>::operator++() {
-		BigInteger<1> rhs(1u);
-		return ( *this += rhs );
-	}
-
-	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
-	const BigInteger<_T_bit_amount> BigInteger<_T_bit_amount>::operator++(int) {
-		BigInteger result(*this);
-		++( *this );
-		return result;
-	}
+	/* ***************************************************************** *\
+	 *    Multiplication    ******************************************** *
+	\* ***************************************************************** */
 
 	template <uint_fast64_t _T_bit_amount>
-	template <typename T>
-	typename std::enable_if<std::is_unsigned<T>::value,
-			BigInteger<_T_bit_amount>&>::type
-	BigInteger<_T_bit_amount>::operator+=(T rhs) {
-		if (rhs == 0) return *this;
-		BigInteger<sizeof(T)> temp(rhs);
-		return ( ( *this ) += temp );
+	template <uint_fast64_t _T_rhs_size>
+	BigInteger<_T_bit_amount>& BigInteger<_T_bit_amount>::operator*=(BigInteger<_T_rhs_size>& rhs) {
+		// incorrect, but used to test rapid use of operator<<
+
+		for (int i = 0; i < _T_rhs_size; ++i) {
+			( *this ) += ( rhs << i );
+		}
+		return *this;
 	}
+
+	/* ***************************************************************** *\
+	 *    Division    ////////////////////////////////////////////////// *
+	\* ***************************************************************** */
+
+	/* ***************************************************************** *\
+	 *    Left Stream    <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< *
+	\* ***************************************************************** */
+
+	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
+	BigInteger<_T_bit_amount>& BigInteger<_T_bit_amount>::operator<<=(const uint_fast64_t amount) {
+		if (amount == 0) {
+			return *this;
+		}
+
+		for (int i = amount + _T_bit_amount - 1; i >= amount; --i) {
+			this->_set_bit(i, this->_get_bit(i - amount));
+		}
+
+		for (int j = 0; j < amount; ++j) {
+			this->_set_bit(j, 0);
+		}
+	}
+
+	NPASSON_BIGINTEGER_SIZE(_T_bit_amount)
+	BigInteger<_T_bit_amount> BigInteger<_T_bit_amount>::operator<<(const uint_fast64_t amount) const {
+		BigInteger<_T_bit_amount> temp(*this);
+		temp.print_data();
+		return temp <<= amount;
+	}
+
+	/* ***************************************************************** *\
+	 *    Right Stream    >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> *
+	\* ***************************************************************** */
 }
 
 #undef if_constexpr
