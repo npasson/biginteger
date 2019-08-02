@@ -33,7 +33,7 @@ Big numbers. Who needs 64 bit integers when you can have 64,000,000 bit integers
 **1\.**
  `cd` into your project folder, and run
 ```
-git clone gitlab.tu-berlin.de/npasson/biginteger
+git clone github.com/npasson/biginteger
 ```
 This will download the code.
 
